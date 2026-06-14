@@ -71,7 +71,6 @@ def classify_message(text: str) -> dict:
         multi_label=True
     )
 
-
     threshold = 0.80
 
     detected = [
@@ -89,15 +88,18 @@ def classify_message(text: str) -> dict:
             "gate_confidence": gate_confidence
         }
 
-    risk_score = round(
-        sum(c["confidence"] for c in detected) / len(detected), 3
-    )
+    # Risk score calculated across all 10 categories — not just detected ones
+    # This gives a more accurate representation of overall toxicity
+    all_scores = {LABEL_MAP[label]: round(score, 3)
+                  for label, score in zip(result["labels"], result["scores"])}
 
-    if risk_score >= 0.85:
+    risk_score = round(sum(all_scores.values()) / len(all_scores), 3)
+
+    if risk_score >= 0.70:
         risk_level = "high"
-    elif risk_score >= 0.65:
+    elif risk_score >= 0.45:
         risk_level = "medium"
-    elif risk_score > 0:
+    elif risk_score > 0.20:
         risk_level = "low"
     else:
         risk_level = "none"
