@@ -4,7 +4,7 @@
 from transformers import pipeline
 from pathlib import Path
 
-TOXIC_LABELS = [
+CANDIDATE_LABELS = [
     "control",
     "manipulation",
     "threat",
@@ -16,19 +16,6 @@ TOXIC_LABELS = [
     "aggressive language",
     "coercion"
 ]
-
-NEUTRAL_LABELS = [
-    "neutral communication",
-    "friendly conversation",
-    "normal request",
-    "positive interaction",
-    "everyday coordination",
-    "expression of gratitude",
-    "casual greeting",
-    "professional communication"
-]
-
-CANDIDATE_LABELS = TOXIC_LABELS + NEUTRAL_LABELS
 
 GATE_MODEL_PATH = str(Path(__file__).parent.parent.parent.parent / "models" / "toxic_gate")
 
@@ -82,29 +69,24 @@ def classify_message(text: str) -> dict:
     )
 
     threshold = 0.5
-    toxic_detected = []
-    neutral_score = 0.0
 
-    for label, score in zip(result["labels"], result["scores"]):
-        if label in NEUTRAL_LABELS:
-            neutral_score = max(neutral_score, score)
-        elif score >= threshold:
-            toxic_detected.append({
-                "category": label,
-                "confidence": round(score, 3)
-            })
+    detected = [
+        {"category": label, "confidence": round(score, 3)}
+        for label, score in zip(result["labels"], result["scores"])
+            if score >= threshold
+    ]
 
-    if not toxic_detected:
+    if not detected:
         return {
             "detected_categories": [],
             "risk_score": 0.0,
             "risk_level": "none",
-            "gate": "toxic-bert passed, no categories above threshold",
+            "gate": "no categories above threshold",
             "gate_confidence": gate_confidence
         }
 
     risk_score = round(
-        sum(c["confidence"] for c in toxic_detected) / len(toxic_detected), 3
+        sum(c["confidence"] for c in detected) / len(detected), 3
     )
 
     if risk_score >= 0.7:
@@ -117,7 +99,7 @@ def classify_message(text: str) -> dict:
         risk_level = "none"
 
     return {
-        "detected_categories": toxic_detected,
+        "detected_categories": detected,
         "risk_score": risk_score,
         "risk_level": risk_level,
         "gate": "toxic",
