@@ -42,10 +42,10 @@ def analyze_message(
     anonymised = anonymise_text(message.content)
     safe_text = anonymised["anonymised_text"]
 
-    # Step 1 — HuggingFace classification on anonymised text
+    # Step 1 — Fine-tuned DistilBERT gate + bart-large-mnli zero-shot classification
     classification = classify_message(safe_text)
 
-    # Step 2 — RAG retrieval on anonymised text
+    # Step 2 — RAG retrieval from pgvector knowledge base
     retrieved_docs = retrieve_relevant_docs(
         message=safe_text,
         categories=classification["detected_categories"]

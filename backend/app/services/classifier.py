@@ -45,19 +45,18 @@ zero_shot_classifier = pipeline(
 )
 
 def classify_message(text: str) -> dict:
-    """
-    Two-stage classification:
-    1. toxic gate — is the message toxic at all?
-    2. bart-large-mnli — which specific categories?
-    """
+    # HuggingFace classification service.
+    # Two-stage pipeline: fine-tuned DistilBERT gate (toxic/non-toxic) 
+    # and facebook/bart-large-mnli for multi-label category detection.
+
     # Stage 1 — toxic-bert gate
     gate_result = toxic_gate(text)[0]
     label = gate_result["label"]
     score = round(gate_result["score"], 3)
 
-    # toxic-bert returns the label with highest confidence
-    # if label is "toxic" with low score → actually non-toxic
-    # if label is "non-toxic" with high score → definitely non-toxic
+    # Fine-tuned DistilBERT returns the label with highest confidence
+    # if label is "toxic" with low score → uncertain, pass to bart classifier
+    # if label is "non-toxic" with high score → definitely non-toxic, stop pipeline
     if label == "toxic":
         is_toxic = score >= 0.7  # only toxic if confident
         gate_confidence = score
