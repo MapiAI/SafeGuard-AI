@@ -4,18 +4,21 @@
 from transformers import pipeline
 from pathlib import Path
 
-CANDIDATE_LABELS = [
-    "control",
-    "manipulation",
-    "threat",
-    "psychological pressure",
-    "jealousy",
-    "isolation",
-    "gaslighting",
-    "humiliation",
-    "aggressive language",
-    "coercion"
-]
+# Descriptive labels for zero-shot classification — more context helps bart-large-mnli
+LABEL_MAP = {
+    "controlling behavior that limits personal freedom and autonomy": "control",
+    "emotional manipulation that exploits feelings to influence behavior": "manipulation",
+    "direct threats and intimidation": "threat",
+    "psychological pressure and emotional coercion": "psychological pressure",
+    "jealousy and possessive behavior": "jealousy",
+    "isolation from friends and family": "isolation",
+    "gaslighting and reality distortion": "gaslighting",
+    "humiliation and degradation": "humiliation",
+    "explicit verbal aggression and insults": "aggressive language",
+    "coercion and forced compliance": "coercion"
+}
+
+CANDIDATE_LABELS = list(LABEL_MAP.keys())
 
 GATE_MODEL_PATH = str(Path(__file__).parent.parent.parent.parent / "models" / "toxic_gate")
 
@@ -51,7 +54,7 @@ def classify_message(text: str) -> dict:
         is_toxic = False
         gate_confidence = score
 
-    if not is_toxic and gate_confidence >= 0.85:
+    if not is_toxic and gate_confidence >= 0.95:
         return {
             "detected_categories": [],
             "risk_score": 0.0,
@@ -68,12 +71,13 @@ def classify_message(text: str) -> dict:
         multi_label=True
     )
 
-    threshold = 0.5
+
+    threshold = 0.80
 
     detected = [
-        {"category": label, "confidence": round(score, 3)}
+        {"category": LABEL_MAP[label], "confidence": round(score, 3)}
         for label, score in zip(result["labels"], result["scores"])
-            if score >= threshold
+        if score >= threshold
     ]
 
     if not detected:
@@ -89,9 +93,9 @@ def classify_message(text: str) -> dict:
         sum(c["confidence"] for c in detected) / len(detected), 3
     )
 
-    if risk_score >= 0.7:
+    if risk_score >= 0.85:
         risk_level = "high"
-    elif risk_score >= 0.5:
+    elif risk_score >= 0.65:
         risk_level = "medium"
     elif risk_score > 0:
         risk_level = "low"

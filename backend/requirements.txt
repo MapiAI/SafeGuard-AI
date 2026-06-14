@@ -23,3 +23,8 @@ spacy
 datasets
 accelerate
 scikit-learn
+streamlit
+plotly
+requests
+pydantic-settings
+langchain-text-splitters

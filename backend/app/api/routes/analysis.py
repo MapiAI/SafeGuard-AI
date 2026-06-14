@@ -73,3 +73,27 @@ def analyze_message(
     db.commit()
     db.refresh(analysis)
     return analysis
+
+@router.get("/{message_id}/analysis", response_model=AnalysisResponse)
+def get_analysis(
+    case_id: int,
+    message_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    # Verify case belongs to current user
+    case = db.query(Case).filter(Case.id == case_id, Case.user_id == current_user.id).first()
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    # Verify message belongs to case
+    message = db.query(Message).filter(Message.id == message_id, Message.case_id == case_id).first()
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    # Get analysis
+    analysis = db.query(Analysis).filter(Analysis.message_id == message_id).first()
+    if not analysis:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    return analysis
