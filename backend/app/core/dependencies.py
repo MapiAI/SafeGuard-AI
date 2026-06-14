@@ -19,5 +19,9 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         )
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User no longer exists",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
     return user

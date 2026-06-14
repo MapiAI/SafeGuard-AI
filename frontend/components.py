@@ -6,13 +6,16 @@ import requests
 API_URL = "http://127.0.0.1:8000"
 
 def check_auth(headers: dict) -> bool:
-    response = requests.get(f"{API_URL}/me", headers=headers)
-    if response.status_code == 401:
-        st.session_state.token = None
-        st.session_state.user_email = None
-        st.switch_page("app.py")
-        return False
-    return True
+    try:
+        response = requests.get(f"{API_URL}/me", headers=headers)
+        if response.status_code in [401, 403, 404]:
+            st.session_state.token = None
+            st.session_state.user_email = None
+            st.switch_page("app.py")
+            return False
+        return True
+    except Exception:
+        return True
 
 def show_sidebar():
     """Render the navigation sidebar. Call at the top of every page."""

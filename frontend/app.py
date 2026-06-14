@@ -50,8 +50,8 @@ def register(email: str, password: str) -> tuple[bool, str]:
     return False, response.json().get("detail", "Registration failed.")
 
 def logout():
-    st.session_state.token = None
-    st.session_state.user_email = None
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
     st.rerun()
 
 # ── Main ──────────────────────────────────────────────────────────────────────
