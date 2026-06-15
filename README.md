@@ -32,7 +32,7 @@ SafeGuard AI helps users identify and understand potentially harmful communicati
 
 ## Overview
 
-SafeGuard AI introduces **Behavioral Pattern Timeline** analysis — instead of evaluating single messages in isolation, the system tracks communication patterns over time, detecting escalation, recurring cycles, and emerging risks across a series of messages grouped in Cases.
+SafeGuard AI introduces **Behavioral Pattern Timeline** analysis, instead of evaluating single messages in isolation, the system tracks communication patterns over time, detecting escalation, recurring cycles, and emerging risks across a series of messages grouped in Cases.
 
 Key features:
 
@@ -404,11 +404,8 @@ The ethical policy is embedded directly in the GPT system prompt and enforced at
 
 ## Known Limitations
 
-- Zero-shot classification may produce false positives on ambiguous or context-dependent language
-- The fine-tuned gate model was trained on a limited dataset and may miss subtle implicit threats
-- Risk scoring produces a bimodal distribution (none or high) — medium/low risk requires more nuanced domain-specific training
 - Social media language, sarcasm, emoji-based communication, and non-English input are not fully supported
-- Single message analysis is inherently limited — the behavioral timeline across multiple messages provides more reliable insights
+- Single message analysis is inherently limited. The behavioral timeline across multiple messages provides more reliable insights
 
 ---
 
