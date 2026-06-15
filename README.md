@@ -429,3 +429,8 @@ MIT License — see [LICENSE](LICENSE) for details.
 ---
 
 *SafeGuard AI — Built with care for responsible AI design.*
+
+## 👤 Author
+**Maria Petralia (MaPi)**
+- GitHub: [MapiAI](https://github.com/MapiAI)
+- LinkedIn: [mariapetralia](https://www.linkedin.com/in/mariapetralia/)
