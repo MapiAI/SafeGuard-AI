@@ -124,6 +124,12 @@ st.divider()
 st.subheader("Messages in this Case")
 messages = get_messages(selected_case_id)
 
+# Search messages
+msg_search = st.text_input("🔍 Search messages", placeholder="Type to filter...")
+if msg_search:
+    messages = [m for m in messages if msg_search.lower() in m['content'].lower() or
+                (m.get('author_alias') and msg_search.lower() in m['author_alias'].lower())]
+
 if not messages:
     st.info("No messages yet. Add your first message above.")
 else:
@@ -151,22 +157,22 @@ else:
                             analyze_message(selected_case_id, msg['id'])
                         st.rerun()
 
-        # Show analysis details
-        if analysis_resp.status_code == 200:
-            analysis = analysis_resp.json()
-            if analysis.get("risk_level") != "none":
-                with st.expander("📋 View Analysis", expanded=False):
-                    st.markdown("**Explanation**")
-                    st.info(analysis.get("explanation", ""))
+            # Show analysis details
+            if analysis_resp.status_code == 200:
+                analysis = analysis_resp.json()
+                if analysis.get("risk_level") != "none":
+                    with st.expander("📋 View Analysis", expanded=False):
+                        st.markdown("**Explanation**")
+                        st.info(analysis.get("explanation", ""))
 
-                    st.markdown("**Response Strategies**")
-                    strategies = analysis.get("response_strategies", [])
-                    if strategies:
-                        tabs = st.tabs([s["type"] for s in strategies])
-                        for tab, strategy in zip(tabs, strategies):
-                            with tab:
-                                st.write(strategy["example"])
-                                st.caption(strategy["description"])
-            else:
-                with st.expander("📋 View Analysis", expanded=False):
-                    st.success(analysis.get("explanation", "This message does not contain problematic communication patterns."))
+                        st.markdown("**Response Strategies**")
+                        strategies = analysis.get("response_strategies", [])
+                        if strategies:
+                            tabs = st.tabs([s["type"] for s in strategies])
+                            for tab, strategy in zip(tabs, strategies):
+                                with tab:
+                                    st.write(strategy["example"])
+                                    st.caption(strategy["description"])
+                else:
+                    with st.expander("📋 View Analysis", expanded=False):
+                        st.success(analysis.get("explanation", "This message does not contain problematic communication patterns."))

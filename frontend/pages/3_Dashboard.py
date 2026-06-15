@@ -74,10 +74,12 @@ for msg in messages:
             "date": msg['timestamp'][:10],
             "date_fmt": format_date(msg['timestamp']),
             "message": msg['content'][:60] + "..." if len(msg['content']) > 60 else msg['content'],
+            "full_message": msg['content'],  
             "risk_level": analysis.get("risk_level", "none"),
             "risk_score": analysis.get("risk_score", 0.0),
             "categories": analysis.get("categories", []),
-            "author": msg.get("author_alias") or "Unknown"
+            "author": msg.get("author_alias") or "Unknown",
+            "msg_id": msg['id']  #
         })
 
 if not rows:
@@ -147,19 +149,26 @@ if category_counts:
     ).sort_values("Count", ascending=True)
 
     fig_bar = px.bar(
-        cat_df,
-        x="Count",
-        y="Category",
-        orientation="h",
-        color="Count",
-        color_continuous_scale="Reds",
-        labels={"Count": "Occurrences", "Category": "Pattern"}
+    cat_df,
+    x="Count",
+    y="Category",
+    orientation="h",
+    color="Count",
+    color_continuous_scale="Reds",
+    labels={"Count": "Occurrences", "Category": "Pattern"}
     )
+    
     fig_bar.update_layout(
         plot_bgcolor="rgba(0,0,0,0)",
         paper_bgcolor="rgba(0,0,0,0)",
         showlegend=False,
         coloraxis_showscale=False
+    )
+    
+    fig_bar.update_xaxes(
+        dtick=1,
+        tick0=0,
+        tickformat="d"
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 else:
@@ -174,10 +183,10 @@ risk_counts = df['risk_level'].value_counts().reset_index()
 risk_counts.columns = ["Risk Level", "Count"]
 
 color_map = {
-    "none": "#2d6a4f",
-    "low": "#b5850a",
-    "medium": "#b84c00",
-    "high": "#9b2226"
+    "none": "#9ed7a0",
+    "low": "#f7efa2",
+    "medium": "#fdbc5a",
+    "high": "#dd5c5c"
 }
 
 fig_pie = px.pie(
@@ -195,8 +204,49 @@ st.plotly_chart(fig_pie, use_container_width=True)
 
 st.divider()
 
+# Risk badge
+def risk_badge(level: str) -> str:
+    colors = {
+        "none": ("🟢", "#2d6a4f"),
+        "low": ("🟡", "#b5850a"),
+        "medium": ("🟠", "#b84c00"),
+        "high": ("🔴", "#9b2226")
+    }
+    emoji, color = colors.get(level, ("⚪", "#888888"))
+    return f'<span style="font-size:0.85rem; color:{color}; font-weight:600;">{emoji} {level.capitalize()} risk</span>'
+
 # ── Message table ─────────────────────────────────────────────────────────────
 st.subheader("Message Details")
-display_df = df[["date_fmt", "author", "message", "risk_level", "risk_score"]].copy()
-display_df.columns = ["Date", "Author", "Message", "Risk Level", "Risk Score"]
-st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+for _, row in df.iterrows():
+    with st.expander(f"{row['date_fmt']} — {row['author']} — {row['risk_level'].upper()}"):
+        st.write(row['full_message'])
+        
+        # Find full analysis
+        msg_id = row.get('msg_id')
+        if msg_id:
+            analysis_resp = requests.get(
+                f"{API_URL}/cases/{selected_case_id}/messages/{msg_id}/analysis",
+                headers=headers
+            )
+            if analysis_resp.status_code == 200:
+                analysis = analysis_resp.json()
+                
+                # Risk badge
+                risk_level = analysis.get("risk_level", "none")
+                st.markdown(risk_badge(risk_level), unsafe_allow_html=True)
+            
+                # Explanation
+                if analysis.get("explanation"):
+                    st.markdown("**Explanation**")
+                    st.info(analysis.get("explanation"))
+                
+                # Response strategies
+                strategies = analysis.get("response_strategies", [])
+                if strategies and risk_level != "none":
+                    st.markdown("**Response Strategies**")
+                    tabs = st.tabs([s["type"] for s in strategies])
+                    for tab, strategy in zip(tabs, strategies):
+                        with tab:
+                            st.write(strategy["example"])
+                            st.caption(strategy["description"])

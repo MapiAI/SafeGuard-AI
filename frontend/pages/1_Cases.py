@@ -74,6 +74,15 @@ st.divider()
 # List cases
 cases = get_cases()
 
+
+search = st.text_input("🔍 Search cases", placeholder="Type to filter...")
+
+# Filter
+if search:
+    cases = [c for c in cases if search.lower() in c['title'].lower() or 
+             (c['description'] and search.lower() in c['description'].lower())]
+
+
 if not cases:
     st.info("No cases yet. Create your first case above.")
 else:
@@ -91,3 +100,6 @@ else:
                 if st.button("🗑️", key=f"delete_{case['id']}", help="Delete case"):
                     if delete_case(case['id']):
                         st.rerun()
+                        # Search
+
+
