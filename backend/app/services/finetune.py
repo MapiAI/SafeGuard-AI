@@ -89,6 +89,66 @@ CUSTOM_EXAMPLES = [
     {"text": "Let us find a solution that works for both of us.", "label": 0},
     {"text": "I appreciate everything you do for me.", "label": 0},
     {"text": "How was your day?", "label": 0},
+    {"text": "Hey! Are we still on for Saturday?", "label": 0},
+    {"text": "Sorry I missed your call, been super busy lately!", "label": 0},
+    {"text": "No worries, let us reschedule. How about next weekend?", "label": 0},
+    {"text": "Miss hanging out with you!", "label": 0},
+    {"text": "Happy to catch up whenever you are ready, no pressure!", "label": 0},
+    {"text": "Had a great time today, thanks for being such a good friend!", "label": 0},
+    {"text": "Can we talk when you have a moment?", "label": 0},
+    {"text": "Thanks for being there for me!", "label": 0},
+    {"text": "How are you doing lately?", "label": 0},
+    {"text": "Just checking in, hope everything is okay!", "label": 0},
+    {"text": "Are you free this weekend?", "label": 0},
+    {"text": "Let me know if you need anything!", "label": 0},
+    {"text": "I was wondering if we could catch up soon?", "label": 0},
+    {"text": "Hope you have a great week!", "label": 0},
+    {"text": "Did you get my message from earlier?", "label": 0},
+    {"text": "I am running a bit late, be there in 10 minutes!", "label": 0},
+    {"text": "Can we reschedule our meeting to Thursday?", "label": 0},
+    {"text": "Just wanted to say hi and see how you are doing!", "label": 0},
+    {"text": "It was so nice seeing you the other day!", "label": 0},
+    {"text": "I noticed you seemed a bit quiet today, everything okay?", "label": 0},
+    {"text": "You seem a bit off today, everything okay?", "label": 0},
+    {"text": "I miss our chats, we should catch up soon!", "label": 0},
+    {"text": "Sorry for the late reply, things have been hectic!", "label": 0},
+    {"text": "Thanks for your help yesterday, really appreciated it!", "label": 0},
+    {"text": "Looking forward to seeing you this weekend!", "label": 0},
+    {"text": "I have been thinking about what you said and I think you are right.", "label": 0},
+    {"text": "Can I ask you something? I need your advice.", "label": 0},
+    {"text": "I hope things are better for you now.", "label": 0},
+    {"text": "Thank you for always being so supportive!", "label": 0},
+    {"text": "I feel like we have not talked in ages, how are you?", "label": 0},
+    {"text": "I noticed you have been a bit distant lately. Miss hanging out!", "label": 0},
+    {"text": "No rush, just let me know when you are ready.", "label": 0},
+    {"text": "I am proud of you for what you accomplished!", "label": 0},
+    {"text": "You did such a great job today!", "label": 0},
+    {"text": "I was expecting your call but no worries, talk soon!", "label": 0},
+    {"text": "Is everything okay? You seemed stressed earlier.", "label": 0},
+    {"text": "I wish you had told me, I would have helped!", "label": 0},
+    {"text": "I waited for you but no problem, we can reschedule.", "label": 0},
+    {"text": "I felt a bit left out but I understand you were busy.", "label": 0},
+    {"text": "I was a bit disappointed but I know things come up.", "label": 0},
+    {"text": "I need some space to think, nothing personal.", "label": 0},
+    {"text": "I have been feeling a bit overwhelmed lately.", "label": 0},
+    {"text": "Can we talk about what happened yesterday?", "label": 0},
+    {"text": "I felt hurt when you said that, can we discuss it?", "label": 0},
+    {"text": "I understand if you are busy, just let me know!", "label": 0},
+    {"text": "I disagreed with what you said but I respect your view.", "label": 0},
+    {"text": "I would appreciate it if you could let me know next time.", "label": 0},
+    {"text": "I feel better when we communicate openly like this.", "label": 0},
+    {"text": "I appreciate you being honest with me.", "label": 0},
+    {"text": "Let us find a solution that works for both of us.", "label": 0},
+    {"text": "I have been meaning to call you, things have been crazy busy lately!", "label": 0},
+    {"text": "Been swamped with work, sorry for the late reply!", "label": 0},
+    {"text": "Things have been hectic but I have not forgotten about you!", "label": 0},
+    {"text": "Sorry for going quiet, life has been a bit overwhelming lately.", "label": 0},
+    {"text": "Just got your message, been a crazy week!", "label": 0},
+    {"text": "Finally some free time, how have you been?", "label": 0},
+    {"text": "Hey, just wanted to check if you got my message from earlier!", "label": 0},
+    {"text": "Been meaning to reach out, hope you are doing well!", "label": 0},
+    {"text": "Sorry I disappeared, work has been intense.", "label": 0},
+    {"text": "Long time no talk! How are things going?", "label": 0},
 ]
 
 def load_jigsaw(n_samples: int = 2000) -> pd.DataFrame:
@@ -102,9 +162,9 @@ def load_jigsaw(n_samples: int = 2000) -> pd.DataFrame:
     df = df[["text", "label"]]
 
     # Balance toxic and non-toxic
-    toxic = df[df["label"] == 1].sample(n=n_samples // 2, random_state=42)
-    non_toxic = df[df["label"] == 0].sample(n=n_samples // 2, random_state=42)
-    balanced = pd.concat([toxic, non_toxic]).sample(frac=1, random_state=42)
+    toxic = df[df["label"] == 1].sample(n=n_samples // 2, random_state=3)
+    non_toxic = df[df["label"] == 0].sample(n=n_samples // 2, random_state=3)
+    balanced = pd.concat([toxic, non_toxic]).sample(frac=1, random_state=3)
 
     print(f"Civil comments samples: {len(balanced)}")
     return balanced
@@ -116,11 +176,30 @@ def compute_metrics(pred):
     acc = accuracy_score(labels, preds)
     return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
 
+def load_daily_dialog(n_samples: int = 500) -> pd.DataFrame:
+    """Load neutral and happy utterances from better_daily_dialog as non-toxic examples."""
+    print("Loading daily dialog dataset...")
+    dataset = load_dataset("pixelsandpointers/better_daily_dialog", split="train")
+    df = dataset.to_pandas()
+    
+    # Keep only neutral (0) and happy (3) emotions
+    neutral = df[df["emotion"].isin([0, 3])][["utterance"]].copy()
+    neutral = neutral.rename(columns={"utterance": "text"})
+    neutral["label"] = 0
+    
+    # Sample
+    sampled = neutral.sample(n=min(n_samples, len(neutral)), random_state=3)
+    print(f"Daily dialog samples: {len(sampled)}")
+    return sampled
+
+
 def finetune():
     # Load and merge datasets
     jigsaw_df = load_jigsaw(n_samples=2000)
+    daily_df = load_daily_dialog(n_samples=500)
     custom_df = pd.DataFrame(CUSTOM_EXAMPLES)
-    df = pd.concat([jigsaw_df, custom_df]).sample(frac=1, random_state=42).reset_index(drop=True)
+    
+    df = pd.concat([jigsaw_df, daily_df, custom_df]).sample(frac=1, random_state=3).reset_index(drop=True)
     print(f"Total training samples: {len(df)}")
 
     # Split train/eval
