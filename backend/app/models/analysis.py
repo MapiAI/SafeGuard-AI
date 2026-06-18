@@ -18,5 +18,6 @@ class Analysis(Base):
     gate = Column(String, nullable=True)
     gate_confidence = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    context_note = Column(String, nullable=True)
 
     message = relationship("Message", back_populates="analysis")

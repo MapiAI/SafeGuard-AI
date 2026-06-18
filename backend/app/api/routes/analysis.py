@@ -67,7 +67,8 @@ def analyze_message(
         explanation=explanation_result.get("explanation"),
         response_strategies=explanation_result.get("response_strategies"),
         gate=classification.get("gate"),
-        gate_confidence=classification.get("gate_confidence")
+        gate_confidence=classification.get("gate_confidence"),
+        context_note=explanation_result.get("context_note")
     )
     db.add(analysis)
     db.commit()

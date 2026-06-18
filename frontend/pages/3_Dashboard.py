@@ -54,7 +54,20 @@ if not cases:
 
 # Case selector
 case_options = {c['title']: c['id'] for c in cases}
-selected_case_title = st.selectbox("Select Case", options=list(case_options.keys()))
+# Case selector — use preselected case if coming from Cases page
+preselected = st.session_state.get("selected_case_id", None)
+default_index = 0
+if preselected:
+    ids = [c['id'] for c in cases]
+    if preselected in ids:
+        default_index = ids.index(preselected)
+    st.session_state.selected_case_id = None  # reset after use
+
+selected_case_title = st.selectbox(
+    "Select Case",
+    options=list(case_options.keys()),
+    index=default_index
+)
 selected_case_id = case_options[selected_case_title]
 
 st.divider()
@@ -240,6 +253,8 @@ for _, row in df.iterrows():
                 if analysis.get("explanation"):
                     st.markdown("**Explanation**")
                     st.info(analysis.get("explanation"))
+                    if analysis.get("context_note"):
+                        st.caption(f"ℹ️ {analysis.get('context_note')}")
                 
                 # Response strategies
                 strategies = analysis.get("response_strategies", [])

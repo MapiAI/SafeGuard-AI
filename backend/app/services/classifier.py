@@ -54,7 +54,7 @@ def classify_message(text: str) -> dict:
         is_toxic = False
         gate_confidence = score
 
-    if not is_toxic and gate_confidence >= 0.95:
+    if not is_toxic and gate_confidence >= 0.92:
         return {
             "detected_categories": [],
             "risk_score": 0.0,

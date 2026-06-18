@@ -80,7 +80,21 @@ if not cases:
 
 # Case selector
 case_options = {f"{c['title']}": c['id'] for c in cases}
-selected_case_title = st.selectbox("Select Case", options=list(case_options.keys()))
+
+# Use preselected case if coming from Cases page
+preselected = st.session_state.get("selected_case_id", None)
+default_index = 0
+if preselected:
+    ids = [c['id'] for c in cases]
+    if preselected in ids:
+        default_index = ids.index(preselected)
+    st.session_state.selected_case_id = None  # reset after use
+
+selected_case_title = st.selectbox(
+    "Select Case",
+    options=list(case_options.keys()),
+    index=default_index
+)
 selected_case_id = case_options[selected_case_title]
 
 st.divider()
@@ -164,6 +178,8 @@ else:
                     with st.expander("📋 View Analysis", expanded=False):
                         st.markdown("**Explanation**")
                         st.info(analysis.get("explanation", ""))
+                        if analysis.get("context_note"):
+                            st.caption(f"ℹ️ {analysis.get('context_note')}")
 
                         st.markdown("**Response Strategies**")
                         strategies = analysis.get("response_strategies", [])
@@ -173,6 +189,7 @@ else:
                                 with tab:
                                     st.write(strategy["example"])
                                     st.caption(strategy["description"])
+                            
                 else:
                     with st.expander("📋 View Analysis", expanded=False):
                         st.success(analysis.get("explanation", "This message does not contain problematic communication patterns."))

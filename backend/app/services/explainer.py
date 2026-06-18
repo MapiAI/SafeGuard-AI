@@ -69,4 +69,5 @@ Add this disclaimer to each strategy: "This example is generated for educational
     )
 
     result = json.loads(response.choices[0].message.content)
+    result["context_note"] = "This analysis evaluates the message in isolation. Communication patterns may differ when considered within the broader context of a conversation or relationship."
     return result

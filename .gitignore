@@ -8,8 +8,5 @@ __pycache__/
 # Data sensibile
 data/knowledge_base/*.txt
 
-echo 'models/' >> ~/safeguard-ai/.gitignore
-echo 'backend/venv/' >> ~/safeguard-ai/.gitignore
-echo 'data/knowledge_base/' >> ~/safeguard-ai/.gitignore
-echo '**/__pycache__/' >> ~/safeguard-ai/.gitignore
-echo '**/*.pyc' >> ~/safeguard-ai/.gitignore
+# Modelli ML
+models/
