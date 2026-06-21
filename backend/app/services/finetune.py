@@ -195,8 +195,8 @@ def load_daily_dialog(n_samples: int = 500) -> pd.DataFrame:
 
 def finetune():
     # Load and merge datasets
-    jigsaw_df = load_jigsaw(n_samples=2000)
-    daily_df = load_daily_dialog(n_samples=500)
+    jigsaw_df = load_jigsaw(n_samples=3000)
+    daily_df = load_daily_dialog(n_samples=300)
     custom_df = pd.DataFrame(CUSTOM_EXAMPLES)
     
     df = pd.concat([jigsaw_df, daily_df, custom_df]).sample(frac=1, random_state=3).reset_index(drop=True)

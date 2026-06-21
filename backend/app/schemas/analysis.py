@@ -14,6 +14,7 @@ class AnalysisResponse(BaseModel):
     response_strategies: Any | None
     gate: str | None
     gate_confidence: float | None
+    context_risk_level: str | None = None
     context_note: str | None
     created_at: datetime
 

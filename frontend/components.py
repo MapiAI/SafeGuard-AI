@@ -20,7 +20,8 @@ def check_auth(headers: dict) -> bool:
 def show_sidebar():
     """Render the navigation sidebar. Call at the top of every page."""
     with st.sidebar:
-        st.title("🛡️ SafeGuard AI")
+        st.image("assets/safeguard_icon.png", width=80)
+        st.markdown("**SafeGuard AI**")
         st.caption(f"Logged in as {st.session_state.get('user_email', '')}")
         st.divider()
         st.page_link("app.py", label="🏠 Home")

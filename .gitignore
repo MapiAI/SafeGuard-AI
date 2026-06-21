@@ -8,5 +8,5 @@ __pycache__/
 # Data sensibile
 data/knowledge_base/*.txt
 
-# Modelli ML
+# Models ML
 models/

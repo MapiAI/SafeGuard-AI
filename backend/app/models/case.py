@@ -12,6 +12,8 @@ class Case(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
+    subject_alias = Column(String, nullable=True)
+    relationship_summary = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="cases")

@@ -90,9 +90,9 @@ for msg in messages:
             "full_message": msg['content'],  
             "risk_level": analysis.get("risk_level", "none"),
             "risk_score": analysis.get("risk_score", 0.0),
+            "context_risk_level": analysis.get("context_risk_level") or "none",
             "categories": analysis.get("categories", []),
-            "author": msg.get("author_alias") or "Unknown",
-            "msg_id": msg['id']  #
+            "msg_id": msg['id']
         })
 
 if not rows:
@@ -122,27 +122,55 @@ with col4:
 
 st.divider()
 
-# ── Risk score timeline ───────────────────────────────────────────────────────
-st.subheader("Risk Score Over Time")
+# ── Risk score timelines ──────────────────────────────────────────────────────
+CONTEXT_RISK_MAP = {"none": 0.1, "low": 0.4, "medium": 0.7, "high": 0.9}
+df["context_risk_score"] = df["context_risk_level"].map(CONTEXT_RISK_MAP).fillna(0.1)
 
-fig_timeline = px.line(
-    df,
-    x="date_fmt",
-    y="risk_score",
-    markers=True,
-    color_discrete_sequence=["#e63946"],
-    labels={"date_fmt": "Date", "risk_score": "Risk Score"},
-)
-fig_timeline.update_layout(
-    yaxis_range=[0, 1],
-    plot_bgcolor="rgba(0,0,0,0)",
-    paper_bgcolor="rgba(0,0,0,0)",
-    xaxis_title="Date",
-    yaxis_title="Risk Score"
-)
-fig_timeline.add_hrect(y0=0.7, y1=1.0, fillcolor="red", opacity=0.05, line_width=0)
-fig_timeline.add_hrect(y0=0.5, y1=0.7, fillcolor="orange", opacity=0.05, line_width=0)
-st.plotly_chart(fig_timeline, use_container_width=True)
+chart_col1, chart_col2 = st.columns(2)
+
+with chart_col1:
+    st.subheader("Risk Score Over Time")
+    st.caption("Individual message risk score based on detected linguistic patterns.")
+    fig_timeline = px.line(
+        df, x="date_fmt", y="risk_score", markers=True,
+        color_discrete_sequence=["#e63946"],
+        labels={"date_fmt": "Date", "risk_score": "Risk Score"},
+    )
+    fig_timeline.update_layout(
+        yaxis_range=[0, 1],
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis_title="Date",
+        yaxis_title="Risk Score"
+    )
+    fig_timeline.add_hrect(y0=0.80, y1=1.0, fillcolor="red", opacity=0.05, line_width=0)
+    fig_timeline.add_hrect(y0=0.60, y1=0.80, fillcolor="orange", opacity=0.05, line_width=0)
+    fig_timeline.add_hrect(y0=0.20, y1=0.60, fillcolor="yellow", opacity=0.03, line_width=0)
+    st.plotly_chart(fig_timeline, use_container_width=True)
+
+with chart_col2:
+    st.subheader("Context Risk Over Time")
+    st.caption("Risk level reassessed considering the history of previous messages in the case.")
+    fig_context = px.line(
+        df, x="date_fmt", y="context_risk_score", markers=True,
+        color_discrete_sequence=["#e07a1f"],
+        labels={"date_fmt": "Date", "context_risk_score": "Context Risk"},
+    )
+    fig_context.update_layout(
+        yaxis_range=[0, 1],
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        xaxis_title="Date",
+        yaxis_title="Context Risk",
+        yaxis=dict(
+            tickvals=[0.1, 0.4, 0.7, 0.9],
+            ticktext=["None", "Low", "Medium", "High"]
+        )
+    )
+    fig_context.add_hrect(y0=0.80, y1=1.0, fillcolor="red", opacity=0.05, line_width=0)
+    fig_context.add_hrect(y0=0.60, y1=0.80, fillcolor="orange", opacity=0.05, line_width=0)
+    fig_context.add_hrect(y0=0.20, y1=0.60, fillcolor="yellow", opacity=0.03, line_width=0)
+    st.plotly_chart(fig_context, use_container_width=True)
 
 st.divider()
 
@@ -190,11 +218,6 @@ else:
 st.divider()
 
 # ── Risk level distribution ───────────────────────────────────────────────────
-st.subheader("Risk Level Distribution")
-
-risk_counts = df['risk_level'].value_counts().reset_index()
-risk_counts.columns = ["Risk Level", "Count"]
-
 color_map = {
     "none": "#9ed7a0",
     "low": "#f7efa2",
@@ -202,18 +225,31 @@ color_map = {
     "high": "#dd5c5c"
 }
 
-fig_pie = px.pie(
-    risk_counts,
-    names="Risk Level",
-    values="Count",
-    color="Risk Level",
-    color_discrete_map=color_map
-)
-fig_pie.update_layout(
-    plot_bgcolor="rgba(0,0,0,0)",
-    paper_bgcolor="rgba(0,0,0,0)"
-)
-st.plotly_chart(fig_pie, use_container_width=True)
+pie_col1, pie_col2 = st.columns(2)
+
+with pie_col1:
+    st.subheader("Risk Level Distribution")
+    st.caption("Distribution of risk levels across all analyzed messages.")
+    risk_counts = df['risk_level'].value_counts().reset_index()
+    risk_counts.columns = ["Risk Level", "Count"]
+    fig_pie = px.pie(
+        risk_counts, names="Risk Level", values="Count",
+        color="Risk Level", color_discrete_map=color_map
+    )
+    fig_pie.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+    st.plotly_chart(fig_pie, use_container_width=True)
+
+with pie_col2:
+    st.subheader("Context Risk Distribution")
+    st.caption("Distribution of context risk levels, weighted by relationship history.")
+    context_counts = df['context_risk_level'].value_counts().reset_index()
+    context_counts.columns = ["Risk Level", "Count"]
+    fig_pie_ctx = px.pie(
+        context_counts, names="Risk Level", values="Count",
+        color="Risk Level", color_discrete_map=color_map
+    )
+    fig_pie_ctx.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)")
+    st.plotly_chart(fig_pie_ctx, use_container_width=True)
 
 st.divider()
 
@@ -232,7 +268,7 @@ def risk_badge(level: str) -> str:
 st.subheader("Message Details")
 
 for _, row in df.iterrows():
-    with st.expander(f"{row['date_fmt']} — {row['author']} — {row['risk_level'].upper()}"):
+    with st.expander(f"{row['date_fmt']} — {row['risk_level'].upper()}"):
         st.write(row['full_message'])
         
         # Find full analysis
@@ -247,7 +283,15 @@ for _, row in df.iterrows():
                 
                 # Risk badge
                 risk_level = analysis.get("risk_level", "none")
-                st.markdown(risk_badge(risk_level), unsafe_allow_html=True)
+                context_risk = analysis.get("context_risk_level")
+                col_r1, col_r2 = st.columns([1, 1])
+                with col_r1:
+                    st.markdown(risk_badge(risk_level), unsafe_allow_html=True)
+                with col_r2:
+                    if context_risk:
+                        colors = {"none": ("🟢", "#2d6a4f"), "low": ("🟡", "#b5850a"), "medium": ("🟠", "#b84c00"), "high": ("🔴", "#9b2226")}
+                        emoji, color = colors.get(context_risk, ("⚪", "#888888"))
+                        st.markdown(f'<span style="font-size:0.85rem; color:{color}; font-weight:600;">{emoji} Context: {context_risk.capitalize()}</span>', unsafe_allow_html=True)
             
                 # Explanation
                 if analysis.get("explanation"):

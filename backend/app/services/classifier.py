@@ -34,7 +34,7 @@ zero_shot_classifier = pipeline(
     model="facebook/bart-large-mnli"
 )
 
-def classify_message(text: str) -> dict:
+def classify_message(text: str, strict: bool = True) -> dict:
     # HuggingFace classification service.
     # Two-stage pipeline: fine-tuned DistilBERT gate (toxic/non-toxic) 
     # and facebook/bart-large-mnli for multi-label category detection.
@@ -54,7 +54,10 @@ def classify_message(text: str) -> dict:
         is_toxic = False
         gate_confidence = score
 
-    if not is_toxic and gate_confidence >= 0.92:
+    # Lower threshold if relationship has toxic history
+    non_toxic_threshold = 0.92 if strict else 0.75
+    
+    if not is_toxic and gate_confidence >= non_toxic_threshold:
         return {
             "detected_categories": [],
             "risk_score": 0.0,
@@ -88,16 +91,18 @@ def classify_message(text: str) -> dict:
             "gate_confidence": gate_confidence
         }
 
-    # Risk score calculated across all 10 categories — not just detected ones
-    # This gives a more accurate representation of overall toxicity
+    # Risk score: weighted average of all 10 categories and max category score
+    # avg_all gives nuance, max_score amplifies when at least one category is strong
     all_scores = {LABEL_MAP[label]: round(score, 3)
-                  for label, score in zip(result["labels"], result["scores"])}
+                for label, score in zip(result["labels"], result["scores"])}
 
-    risk_score = round(sum(all_scores.values()) / len(all_scores), 3)
+    avg_all = sum(all_scores.values()) / len(all_scores)
+    max_score = max(all_scores.values())
+    risk_score = round((avg_all + max_score) / 2, 3)
 
-    if risk_score >= 0.70:
+    if risk_score >= 0.80:
         risk_level = "high"
-    elif risk_score >= 0.45:
+    elif risk_score >= 0.60:
         risk_level = "medium"
     elif risk_score > 0.20:
         risk_level = "low"

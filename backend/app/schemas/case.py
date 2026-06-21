@@ -13,16 +13,20 @@ class CaseCreate(BaseModel):
         max_length=500,
         description="Optional description of the case context."
     )
+    subject_alias: str | None = None
 
 class CaseUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=500)
+    subject_alias: str | None = None
 
 class CaseResponse(BaseModel):
     id: int
     user_id: int
     title: str
     description: str | None
+    subject_alias: str | None = None
+    relationship_summary: str | None = None
     created_at: datetime
 
     class Config:

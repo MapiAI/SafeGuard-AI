@@ -42,21 +42,66 @@ def analyze_message(
     anonymised = anonymise_text(message.content)
     safe_text = anonymised["anonymised_text"]
 
-    # Step 1 — Fine-tuned DistilBERT gate + bart-large-mnli zero-shot classification
-    classification = classify_message(safe_text)
+    # Step 1 — Retrieve last 3 analyzed messages from case (relationship context)
+    previous_messages = []
+    previous = (
+        db.query(Message)
+        .join(Analysis)
+        .filter(Message.case_id == case_id, Message.id != message_id)
+        .order_by(Message.timestamp.desc())
+        .limit(3)
+        .all()
+    )
+    for m in reversed(previous):
+        previous_messages.append({
+            "content": m.content,
+            "risk_level": m.analysis.risk_level,
+            "categories": m.analysis.categories or []
+        })
 
-    # Step 2 — RAG retrieval from pgvector knowledge base
+    # Step 1b — Check if relationship history contains toxic patterns
+    high_risk_history = any(
+        m["risk_level"] in ["high", "medium"]
+        for m in previous_messages
+    )
+
+    # Step 2 — Fine-tuned DistilBERT gate + bart-large-mnli zero-shot classification
+    # strict=False lowers gate threshold when toxic history is present
+    classification = classify_message(safe_text, strict=not high_risk_history)
+
+    # Step 3 — RAG retrieval from pgvector knowledge base
     retrieved_docs = retrieve_relevant_docs(
         message=safe_text,
         categories=classification["detected_categories"]
     )
 
-    # Step 3 — OpenAI explanation on anonymised text
+    # Step 4 — OpenAI explanation on anonymised text with relationship context
     explanation_result = generate_explanation(
         message=safe_text,
         categories=classification["detected_categories"],
-        retrieved_docs=retrieved_docs
+        retrieved_docs=retrieved_docs,
+        previous_messages=previous_messages,
+        relationship_summary=case.relationship_summary or ""
     )
+
+    # Step 5 — Update relationship summary on case
+    if explanation_result.get("updated_summary"):
+        case.relationship_summary = explanation_result["updated_summary"]
+        db.commit()
+        
+    # Step 6 — Override context_risk_level if no toxic history and message is none risk
+    context_risk_level = explanation_result.get("context_risk_level")
+    if classification["risk_level"] == "none" and not high_risk_history:
+        context_risk_level = "none"
+    
+    # Step 6b — Override context_risk_level to high if current message is high and history contains high
+    high_in_history = any(m["risk_level"] == "high" for m in previous_messages)
+    if classification["risk_level"] == "high" and high_in_history:
+        context_risk_level = "high"
+    
+    # Step 6c — A high risk message can never have context low
+    if classification["risk_level"] == "high" and context_risk_level == "low":
+        context_risk_level = "medium"
 
     # Store analysis — original message stored in DB, anonymised text sent to AI
     analysis = Analysis(
@@ -68,7 +113,8 @@ def analyze_message(
         response_strategies=explanation_result.get("response_strategies"),
         gate=classification.get("gate"),
         gate_confidence=classification.get("gate_confidence"),
-        context_note=explanation_result.get("context_note")
+        context_note=explanation_result.get("context_note"),
+        context_risk_level=context_risk_level,
     )
     db.add(analysis)
     db.commit()

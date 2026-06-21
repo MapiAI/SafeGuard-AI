@@ -17,6 +17,7 @@ class Analysis(Base):
     response_strategies = Column(JSON, nullable=True)
     gate = Column(String, nullable=True)
     gate_confidence = Column(Float, nullable=True)
+    context_risk_level = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     context_note = Column(String, nullable=True)
 

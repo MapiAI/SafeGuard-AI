@@ -24,10 +24,10 @@ def get_cases():
     response = requests.get(f"{API_URL}/cases/", headers=headers)
     return response.json() if response.status_code == 200 else []
 
-def create_case(title: str, description: str):
+def create_case(title: str, description: str, subject_alias: str):
     response = requests.post(
         f"{API_URL}/cases/",
-        json={"title": title, "description": description},
+        json={"title": title, "description": description, "subject_alias": subject_alias or None},
         headers=headers
     )
     return response.status_code == 201
@@ -79,11 +79,16 @@ with st.expander("➕ Create New Case", expanded=False):
             placeholder="Brief context about this case",
             max_chars=500
         )
+        subject_alias = st.text_input(
+            "Subject Alias (optional)",
+            placeholder="e.g. Person A, Colleague",
+            max_chars=50
+        )
         st.caption("⚠️ For privacy reasons, avoid using real names.")
         submitted = st.form_submit_button("Create Case", use_container_width=True)
         if submitted:
             if title:
-                if create_case(title, description):
+                if create_case(title, description, subject_alias):
                     st.success("Case created successfully.")
                     st.rerun()
                 else:
@@ -111,6 +116,8 @@ else:
             col1, col2 = st.columns([4, 1])
             with col1:
                 st.markdown(f"**{case['title']}**")
+                if case.get('subject_alias'):
+                    st.caption(f"Subject: {case['subject_alias']}")
                 if case['description']:
                     st.caption(case['description'])
                 st.caption(f"Created: {format_date(case['created_at'])}")

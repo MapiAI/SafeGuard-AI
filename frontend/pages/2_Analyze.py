@@ -28,10 +28,10 @@ def get_messages(case_id: int):
     response = requests.get(f"{API_URL}/cases/{case_id}/messages/", headers=headers)
     return response.json() if response.status_code == 200 else []
 
-def create_message(case_id: int, content: str, author_alias: str):
+def create_message(case_id: int, content: str):
     response = requests.post(
         f"{API_URL}/cases/{case_id}/messages/",
-        json={"content": content, "author_alias": author_alias or None},
+        json={"content": content},
         headers=headers
     )
     return response.json() if response.status_code == 201 else None
@@ -42,6 +42,13 @@ def analyze_message(case_id: int, message_id: int):
         headers=headers
     )
     return response.json() if response.status_code == 201 else None
+
+def delete_message(case_id: int, message_id: int):
+    response = requests.delete(
+        f"{API_URL}/cases/{case_id}/messages/{message_id}",
+        headers=headers
+    )
+    return response.status_code == 204
 
 def get_analysis(case_id: int, message_id: int):
     response = requests.get(
@@ -81,14 +88,13 @@ if not cases:
 # Case selector
 case_options = {f"{c['title']}": c['id'] for c in cases}
 
-# Use preselected case if coming from Cases page
+# Use preselected case if coming from Cases page, or restore last selected
 preselected = st.session_state.get("selected_case_id", None)
 default_index = 0
 if preselected:
     ids = [c['id'] for c in cases]
     if preselected in ids:
         default_index = ids.index(preselected)
-    st.session_state.selected_case_id = None  # reset after use
 
 selected_case_title = st.selectbox(
     "Select Case",
@@ -96,41 +102,34 @@ selected_case_title = st.selectbox(
     index=default_index
 )
 selected_case_id = case_options[selected_case_title]
+st.session_state.selected_case_id = selected_case_id  # preserve across reruns
 
 st.divider()
 
 # Add new message
 with st.expander("➕ Add New Message", expanded=True):
-    with st.form("add_message_form"):
-        content = st.text_area(
-            "Message Content",
-            placeholder="Paste the message you want to analyze...",
-            max_chars=2000,
-            height=120
-        )
-        author_alias = st.text_input(
-            "Author Alias (optional)",
-            placeholder="e.g. Person A, Colleague",
-            max_chars=50
-        )
-        st.caption("⚠️ For privacy reasons, avoid using real names.")
-        submitted = st.form_submit_button("Add & Analyze", use_container_width=True)
-
-        if submitted:
-            if content:
-                with st.spinner("Adding message..."):
-                    message = create_message(selected_case_id, content, author_alias)
-                if message:
-                    with st.spinner("Analyzing message... this may take a moment."):
-                        analysis = analyze_message(selected_case_id, message["id"])
-                    if analysis:
-                        st.rerun()
-                    else:
-                        st.error("Analysis failed. Please try again.")
+    content = st.text_area(
+        "Message Content",
+        placeholder="Paste the message you want to analyze...",
+        max_chars=2000,
+        height=120,
+        key="new_msg_content"
+    )
+    if st.button("Add & Analyze", use_container_width=True):
+        if not content.strip():
+            st.error("Please enter a message before analyzing.")
+        else:
+            with st.spinner("Adding message..."):
+                message = create_message(selected_case_id, content)
+            if message:
+                with st.spinner("Analyzing message... this may take a moment."):
+                    analysis = analyze_message(selected_case_id, message["id"])
+                if analysis:
+                    st.rerun()
                 else:
-                    st.error("Failed to add message.")
+                    st.error("Analysis failed. Please try again.")
             else:
-                st.warning("Please enter a message.")
+                st.error("Failed to add message.")
 
 st.divider()
 
@@ -151,7 +150,6 @@ else:
         with st.container(border=True):
             col1, col2 = st.columns([3, 1])
             with col1:
-                st.markdown(f"**{msg.get('author_alias') or 'Unknown'}**")
                 st.write(msg['content'])
                 date_parts = msg['timestamp'][:10].split("-")
                 st.caption(f"{date_parts[2]}-{date_parts[1]}-{date_parts[0]}")
@@ -164,12 +162,30 @@ else:
                 if analysis_resp.status_code == 200:
                     analysis = analysis_resp.json()
                     level = analysis.get("risk_level", "none")
+                    context_risk = analysis.get("context_risk_level")
                     st.markdown(risk_badge(level), unsafe_allow_html=True)
+                    if context_risk:
+                        colors = {"none": ("🟢", "#2d6a4f"), "low": ("🟡", "#b5850a"), "medium": ("🟠", "#b84c00"), "high": ("🔴", "#9b2226")}
+                        emoji, color = colors.get(context_risk, ("⚪", "#888888"))
+                        st.markdown(f'<span style="font-size:0.85rem; color:{color}; font-weight:600;">{emoji} Context: {context_risk.capitalize()}</span>', unsafe_allow_html=True)
                 else:
-                    if st.button("Analyze", key=f"analyze_{msg['id']}"):
-                        with st.spinner("Analyzing..."):
-                            analyze_message(selected_case_id, msg['id'])
-                        st.rerun()
+                    confirm_key = f"confirm_delete_{msg['id']}"
+                    btn_col1, btn_col2 = st.columns(2)
+                    with btn_col1:
+                        if st.button("Analyze", key=f"analyze_{msg['id']}"):
+                            with st.spinner("Analyzing..."):
+                                analyze_message(selected_case_id, msg['id'])
+                            st.rerun()
+                    with btn_col2:
+                        if st.session_state.get(confirm_key):
+                            if st.button("⚠️ Confirm", key=f"confirm_btn_{msg['id']}"):
+                                delete_message(selected_case_id, msg['id'])
+                                st.session_state.pop(confirm_key, None)
+                                st.rerun()
+                        else:
+                            if st.button("🗑️", key=f"delete_{msg['id']}"):
+                                st.session_state[confirm_key] = True
+                                st.rerun()
 
             # Show analysis details
             if analysis_resp.status_code == 200:
