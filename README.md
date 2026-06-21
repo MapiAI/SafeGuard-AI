@@ -4,7 +4,7 @@
 
 **AI-Powered Detection and Analysis of Toxic Communication Patterns**
 
-SafeGuard AI helps users identify and understand potentially harmful communication patterns in personal, educational, and workplace contexts. The system analyzes messages and provides educational insights grounded in authoritative resources — not in isolation, but across time, tracking behavioral patterns and relational cycles.
+SafeGuard AI helps users identify and understand potentially harmful communication patterns in personal, educational, and workplace contexts. The system analyzes messages and provides educational insights grounded in authoritative resources, not in isolation, but across time, tracking behavioral patterns and relational cycles.
 
 > ⚠️ SafeGuard AI analyzes linguistic patterns only. It does not diagnose individuals, assign guilt, or provide legal or psychological advice. For privacy, avoid using real names in messages.
 
@@ -33,7 +33,7 @@ SafeGuard AI helps users identify and understand potentially harmful communicati
 
 SafeGuard AI introduces **Behavioral Pattern Timeline** analysis. Instead of evaluating messages in isolation, the system tracks communication patterns over time, detecting escalation, recurring cycles, and emerging risks across a series of messages grouped in **Cases**.
 
-Each case represents a 1-to-1 relationship — a personal conversation, a workplace exchange, or any interpersonal communication between two people. The system builds a cumulative **relationship summary** that evolves with every new message analyzed, enabling detection of patterns that only become visible across time — such as cycles of tension, manipulation, and reconciliation.
+Each case represents a 1-to-1 relationship — a personal conversation, a workplace exchange, or any interpersonal communication between two people. The system builds a cumulative **relationship summary** that evolves with every new message analyzed, enabling detection of patterns that only become visible across time, such as cycles of tension, manipulation, and reconciliation.
 
 **Key features:**
 
@@ -465,9 +465,9 @@ The ethical policy is embedded directly in the GPT system prompt and enforced at
 ## Known Limitations
 
 - Social media language, sarcasm, emoji-based communication, and non-English input are not fully supported
-- The DistilBERT gate was trained primarily on civil_comments (online content) — subtle relational manipulation may still occasionally be misclassified as non-toxic
+- The DistilBERT gate was trained primarily on civil_comments (online content). Subtle relational manipulation may still occasionally be misclassified as non-toxic
 - The zero-shot classifier (bart-large-mnli) may produce false positives on decontextualized or ambiguous phrases
-- Contextual analysis improves with more messages — early messages in a case have limited history to draw from
+- Contextual analysis improves with more messages. Early messages in a case have limited history to draw from
 - SafeGuard AI is designed for 1-to-1 communication analysis. Group conversations with multiple authors are not supported in the current version
 
 ---
