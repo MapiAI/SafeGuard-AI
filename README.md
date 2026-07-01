@@ -487,6 +487,23 @@ The ethical policy is embedded directly in the GPT system prompt and enforced at
 
 ---
 
+## Screenshots
+
+### Message Analysis
+![Analysis 1](docs/screenshots/analysis_message_1.png)
+![Analysis 2](docs/screenshots/analysis_message_2.png)
+
+### Dashboard
+![Dashboard Overview](docs/screenshots/dashboard.png)
+![Pattern Distribution](docs/screenshots/pattern_distribution.png)
+![Risk & Context Score Over Time](docs/screenshots/risk_context_score_over_time.png)
+![Risk Level & Context Distribution](docs/screenshots/risk_level_context_distribution.png)
+
+### RAG Educational Assistant
+![RAG Assistant](docs/screenshots/rag_assistant.png)
+
+--- 
+
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
