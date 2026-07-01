@@ -111,6 +111,8 @@ Streamlit Dashboard
 
 ```
 safeguard-ai/
+├── docs/
+│   ├── screenshots/                # UI screenshots
 ├── backend/
 │   ├── app/
 │   │   ├── api/
