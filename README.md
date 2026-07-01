@@ -112,23 +112,24 @@ Streamlit Dashboard
 ```
 safeguard-ai/
 ├── docs/
-│   ├── screenshots/                # UI screenshots
+│   ├── screenshots/                    # UI screenshots
+│   └── SafeGuard_AI_Presentation.pdf 
 ├── backend/
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── routes/
-│   │   │   │   ├── auth.py          # Register, login
-│   │   │   │   ├── cases.py         # CRUD cases
-│   │   │   │   ├── messages.py      # CRUD messages
-│   │   │   │   ├── analysis.py      # AI analysis pipeline
-│   │   │   │   └── assistant.py     # RAG educational assistant
-│   │   │   └── dependencies.py      # JWT auth dependency
+│   │   │   │   ├── auth.py             # Register, login
+│   │   │   │   ├── cases.py            # CRUD cases
+│   │   │   │   ├── messages.py         # CRUD messages
+│   │   │   │   ├── analysis.py         # AI analysis pipeline
+│   │   │   │   └── assistant.py        # RAG educational assistant
+│   │   │   └── dependencies.py         # JWT auth dependency
 │   │   ├── core/
-│   │   │   ├── config.py            # Environment settings
-│   │   │   ├── security.py          # Password hashing, JWT
-│   │   │   └── dependencies.py      # get_current_user
+│   │   │   ├── config.py               # Environment settings
+│   │   │   ├── security.py             # Password hashing, JWT
+│   │   │   └── dependencies.py         # get_current_user
 │   │   ├── db/
-│   │   │   └── database.py          # SQLAlchemy engine, session
+│   │   │   └── database.py             # SQLAlchemy engine, session
 │   │   ├── models/
 │   │   │   ├── user.py
 │   │   │   ├── case.py
@@ -141,17 +142,17 @@ safeguard-ai/
 │   │   │   ├── message.py
 │   │   │   └── analysis.py
 │   │   └── services/
-│   │       ├── anonymizer.py        # Microsoft Presidio PII
-│   │       ├── classifier.py        # DistilBERT gate + bart-large-mnli
-│   │       ├── explainer.py         # OpenAI GPT-4o-mini
-│   │       ├── rag_indexer.py       # Index knowledge base into pgvector
-│   │       ├── rag_retriever.py     # Similarity search
-│   │       └── finetune.py          # DistilBERT fine-tuning script
-│   ├── main.py                      # FastAPI entry point
+│   │       ├── anonymizer.py           # Microsoft Presidio PII
+│   │       ├── classifier.py           # DistilBERT gate + bart-large-mnli
+│   │       ├── explainer.py            # OpenAI GPT-4o-mini
+│   │       ├── rag_indexer.py          # Index knowledge base into pgvector
+│   │       ├── rag_retriever.py        # Similarity search
+│   │       └── finetune.py             # DistilBERT fine-tuning script
+│   ├── main.py                         # FastAPI entry point
 │   └── requirements.txt
 ├── frontend/
-│   ├── app.py                       # Streamlit entry point + auth
-│   ├── components.py                # Shared sidebar, auth check
+│   ├── app.py                          # Streamlit entry point + auth
+│   ├── components.py                   # Shared sidebar, auth check
 │   ├── pages/
 │   │   ├── 1_Cases.py
 │   │   ├── 2_Analyze.py
@@ -160,7 +161,7 @@ safeguard-ai/
 │   └── .streamlit/
 │       └── config.toml
 ├── data/
-│   └── knowledge_base/              # Educational .txt documents for RAG
+│   └── knowledge_base/                 # Educational .txt documents for RAG
 │       ├── healthy_relationships.txt
 │       ├── coercive_control.txt
 │       ├── gaslighting.txt
@@ -175,7 +176,7 @@ safeguard-ai/
 │       ├── neutral_communication.txt
 │       └── neutral_communication_examples.txt
 ├── models/
-│   └── toxic_gate/                  # Fine-tuned DistilBERT (not in Git)
+│   └── toxic_gate/                     # Fine-tuned DistilBERT (not in Git)
 ├── .env.example
 ├── .gitignore
 └── README.md
@@ -505,6 +506,11 @@ The ethical policy is embedded directly in the GPT system prompt and enforced at
 ![RAG Assistant](docs/screenshots/rag_assistant.png)
 
 --- 
+
+## Presentation
+[📊 View Presentation (PDF)](docs/SafeGuard_AI_Presentation.pdf)
+
+---
 
 ## License
 
